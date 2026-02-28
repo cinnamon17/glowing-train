@@ -17,14 +17,12 @@ public class Score extends Table {
 
 	public Score() {
 		super();
-        this.center();
-		this.setFillParent(true);
 		this.skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
 		this.playerScore = new Label("Player: " + this.scorePlayer, this.skin);
 		this.enemyScore = new Label("Enemy: " + this.scoreEnemy, this.skin);
-		this.add(playerScore).fillX().uniformX();
+		this.add(playerScore);
 		this.row().pad(10, 0, 10, 0);
-		this.add(enemyScore).fillX().uniformX();
+		this.add(enemyScore);
 		this.row();
 	}
 

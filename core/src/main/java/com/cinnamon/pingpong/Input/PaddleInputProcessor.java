@@ -7,19 +7,14 @@ import com.badlogic.gdx.InputProcessor;
 import com.cinnamon.pingpong.Main;
 import com.cinnamon.pingpong.Actor.Paddle;
 
-/**
- * Input handler for Paddle
- */
 public class PaddleInputProcessor implements InputProcessor {
 
     private Paddle paddle;
     private Main game;
-    private float width;
 
     public PaddleInputProcessor(Main game, Paddle paddle) {
         this.game = game;
         this.paddle = paddle;
-        this.width = Gdx.graphics.getWidth();
     }
 
     @Override
@@ -83,23 +78,23 @@ public class PaddleInputProcessor implements InputProcessor {
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        if (screenX < width / 2) {
+        if (screenX < Gdx.graphics.getWidth() / 2) {
            paddle.setLeftMove(false);
         }else{
            paddle.setRightMove(false);
         }
-        return false;
+        return true;
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
-        if (screenX < width / 2) {
+        if (screenX < Gdx.graphics.getWidth() / 2) {
            paddle.setLeftMove(true);
         }else{
            paddle.setRightMove(true);
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -110,7 +105,7 @@ public class PaddleInputProcessor implements InputProcessor {
 	@Override
 	public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'touchCancelled'");
+        return false;
 	}
 
 }

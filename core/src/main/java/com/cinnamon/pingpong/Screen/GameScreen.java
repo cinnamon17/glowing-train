@@ -1,5 +1,4 @@
 package com.cinnamon.pingpong.Screen;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -19,6 +18,7 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.cinnamon.pingpong.Main;
 import com.cinnamon.pingpong.Actor.Ball;
+import com.cinnamon.pingpong.Actor.MainTable;
 import com.cinnamon.pingpong.Actor.Paddle;
 import com.cinnamon.pingpong.Actor.Score;
 import com.cinnamon.pingpong.Dto.Data;
@@ -47,6 +47,7 @@ public class GameScreen implements Screen {
     private Json json;
     private Data data;
     private OrthographicCamera camera;
+    private MainTable mainTable;
 
     public GameScreen(final Main game) {
         this.game = game;
@@ -65,7 +66,6 @@ public class GameScreen implements Screen {
         this.backgroundSprite = game.atlas.createSprite("background");
         this.paddle = new Paddle(paddleSprite);
         this.paddleEnemy = new Paddle(paddleEnemySprite);
-        //this.paddleEnemy = new Paddle(paddleEnemySprite, WORLD_WIDTH / 2 - paddle.getWidth() / 2, WORLD_HEIGHT - paddle.getHeight());
         this.ball = new Ball(ballSprite);
         this.score = new Score();
         this.camera = new OrthographicCamera(WORLD_WIDTH, WORLD_HEIGHT);
@@ -79,11 +79,14 @@ public class GameScreen implements Screen {
         this.background = new Image(backgroundSprite);
         this.background.setFillParent(true);
         this.background.setScaling(com.badlogic.gdx.utils.Scaling.stretch);
+        this.mainTable = new MainTable(game);
+        this.mainTable.add(score).expandY().center().pad(10);
+        this.mainTable.row();
         this.stage.addActor(background);
         this.stage.addActor(ball);
-        this.stage.addActor(score);
         this.stage.addActor(paddle);
         this.stage.addActor(paddleEnemy);
+        this.stage.addActor(mainTable);
         Gdx.input.setInputProcessor(inputMultiplexer);
         this.json = new Json();
         this.data = new Data();
@@ -129,7 +132,7 @@ public class GameScreen implements Screen {
     public void render(float delta) {
 
         this.clearScreen();
-        this.updateActors();
+        this.scoreUpdate();
         this.stage.act(delta);
         this.stage.draw();
         this.ballCheckCollision();
@@ -149,7 +152,6 @@ public class GameScreen implements Screen {
         this.music.pause();
     }
 
-
     public void musicDispose() {
         this.music.dispose();
     }
@@ -165,9 +167,6 @@ public class GameScreen implements Screen {
         this.clearScreen();
         this.cameraUpdate();
         this.setProjectionMatrixCombined();
-    }
-    public void updateActors() {
-        this.scoreUpdate();
     }
 
     public void updateMultiplayerCommunication() {
