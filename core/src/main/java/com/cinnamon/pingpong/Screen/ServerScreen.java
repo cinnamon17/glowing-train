@@ -18,7 +18,7 @@ public class ServerScreen implements Screen {
     @Override
     public void show() {
 
-        game.getMultiplayerLabel().setVisible(true);
+        //game.getMultiplayerLabel().setVisible(true);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class ServerScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        game.stageDraw();
+        //game.stageDraw();
     }
 
     @Override
@@ -44,7 +44,7 @@ public class ServerScreen implements Screen {
     @Override
     public void hide() {
 
-        game.getMultiplayerLabel().setVisible(false);
+        //game.getMultiplayerLabel().setVisible(false);
     }
 
     @Override

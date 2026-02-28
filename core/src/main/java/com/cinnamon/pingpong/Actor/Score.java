@@ -17,8 +17,7 @@ public class Score extends Table {
 
 	public Score() {
 		super();
-		this.setPosition(0, 90);
-		this.setVisible(false);
+        this.center();
 		this.setFillParent(true);
 		this.skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
 		this.playerScore = new Label("Player: " + this.scorePlayer, this.skin);

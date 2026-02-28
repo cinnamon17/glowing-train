@@ -1,6 +1,7 @@
 package com.cinnamon.pingpong.Input;
 
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 
 import com.cinnamon.pingpong.Main;
@@ -13,10 +14,12 @@ public class PaddleInputProcessor implements InputProcessor {
 
     private Paddle paddle;
     private Main game;
+    private float width;
 
     public PaddleInputProcessor(Main game, Paddle paddle) {
         this.game = game;
         this.paddle = paddle;
+        this.width = Gdx.graphics.getWidth();
     }
 
     @Override
@@ -53,7 +56,7 @@ public class PaddleInputProcessor implements InputProcessor {
             case Keys.DOWN:
                 break;
             case Keys.ESCAPE:
-                this.game.setScreen(this.game.getMainTitleScreen());
+                this.game.setScreen(this.game.mainTitleScreen);
             default:
                 break;
         }
@@ -80,19 +83,27 @@ public class PaddleInputProcessor implements InputProcessor {
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        // TODO Auto-generated method stub
+        if (screenX < width / 2) {
+           paddle.setLeftMove(false);
+        }else{
+           paddle.setRightMove(false);
+        }
         return false;
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // TODO Auto-generated method stub
+
+        if (screenX < width / 2) {
+           paddle.setLeftMove(true);
+        }else{
+           paddle.setRightMove(true);
+        }
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        // TODO Auto-generated method stub
         return false;
     }
 

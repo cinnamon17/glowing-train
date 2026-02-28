@@ -9,18 +9,21 @@ public class Ball extends Image {
     private float speedX;
     private float speedY;
     private Paddle paddle;
+    private float WORLD_HEIGHT;
+    private float WORLD_WIDTH;
 
     public Ball(TextureRegion textureRegion) {
 
         super(textureRegion);
         this.speedX = 300;
         this.speedY = 300;
-        this.setPosition(400, 240);
-        this.setVisible(false);
     }
 
-    public void update() {
-        this.moveBy(speedX * Gdx.graphics.getDeltaTime(), speedY * Gdx.graphics.getDeltaTime());
+    @Override
+    public void act(float delta) {
+        super.act(delta);
+
+        this.moveBy(speedX * delta, speedY * delta);
 
         if (isAxisYTouched()) {
             speedX = -speedX;
@@ -30,14 +33,18 @@ public class Ball extends Image {
         }
 
         this.resetPosIfTopOrBottomTouched();
+        if (getStage() != null) {
+            this.WORLD_WIDTH = getStage().getViewport().getWorldWidth();
+            this.WORLD_HEIGHT = getStage().getViewport().getWorldHeight();
+        }
     }
 
     public boolean isAxisYTouched() {
-        return this.getX() <= 0 || this.getX() >= Gdx.graphics.getWidth() - this.getWidth();
+        return this.getX() <= 0 || this.getX() >= this.WORLD_WIDTH - this.getWidth();
     }
 
     public boolean isAxisXTouched() {
-        return this.getY() <= 0 || this.getY() >= Gdx.graphics.getHeight() - this.getHeight();
+        return this.getY() <= 0 || this.getY() >= this.WORLD_HEIGHT - this.getHeight();
     }
 
     public void checkColision(Paddle paddle) {
@@ -139,7 +146,7 @@ public class Ball extends Image {
     }
 
     public boolean isBallTouchingTopOfScreen() {
-        return this.getY() + this.getHeight() >= 480;
+        return this.getY() + this.getHeight() >= WORLD_HEIGHT;
     }
 
     public void resetPosIfTopOrBottomTouched() {

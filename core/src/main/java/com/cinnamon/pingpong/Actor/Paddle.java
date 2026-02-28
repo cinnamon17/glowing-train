@@ -9,22 +9,30 @@ public class Paddle extends Image {
 
     private boolean leftMove;
     private boolean rightMove;
+    private float WORLD_HEIGHT;
+    private float WORLD_WIDTH;
 
-    public Paddle(TextureRegion textureRegion, float x, float y) {
-
+    public Paddle(TextureRegion textureRegion) {
         super(textureRegion);
-        this.setPosition(x, y);
-        this.setVisible(false);
     }
 
-    public void update() {
+    @Override
+    public void act(float delta) {
+        super.act(delta);
+
+        if (getStage() != null) {
+            this.WORLD_WIDTH = getStage().getViewport().getWorldWidth();
+            this.WORLD_HEIGHT = getStage().getViewport().getWorldHeight();
+        }
 
         if (this.isLeftMoved()) {
             handleLeftMove();
         }
+
         if (this.isRightMoved()) {
             handleRightMove();
         }
+
     }
 
     public void handleLeftMove() {
@@ -39,12 +47,12 @@ public class Paddle extends Image {
 
         this.setX(this.getX() + 200 * Gdx.graphics.getDeltaTime());
         if (isAxisYTouched()) {
-            this.setPosition(Gdx.graphics.getWidth() - this.getWidth(), 0);
+            this.setPosition(this.WORLD_WIDTH - this.getWidth(), 0);
         }
     }
 
     public boolean isAxisYTouched() {
-        return this.getX() <= 0 || this.getX() >= Gdx.graphics.getWidth() - this.getWidth();
+        return this.getX() <= 0 || this.getX() >= this.WORLD_WIDTH - this.getWidth();
     }
 
     public void setLeftMove(boolean t) {

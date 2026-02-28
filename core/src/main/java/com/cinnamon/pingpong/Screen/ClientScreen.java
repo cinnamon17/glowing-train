@@ -15,13 +15,13 @@ public class ClientScreen implements Screen {
 
     @Override
     public void show() {
-        game.getWindowInput().setVisible(true);
+        //game.getWindowInput().setVisible(true);
     }
 
     @Override
     public void hide() {
 
-        game.getWindowInput().setVisible(false);
+        //game.getWindowInput().setVisible(false);
     }
 
     @Override
@@ -47,6 +47,6 @@ public class ClientScreen implements Screen {
     @Override
     public void render(float delta) {
 
-        game.stageDraw();
+        //game.stageDraw();
     }
 }
