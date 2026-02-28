@@ -52,6 +52,8 @@ public class PaddleInputProcessor implements InputProcessor {
                 break;
             case Keys.ESCAPE:
                 this.game.setScreen(this.game.mainTitleScreen);
+            case Keys.BACK:
+                this.game.setScreen(this.game.mainTitleScreen);
             default:
                 break;
         }

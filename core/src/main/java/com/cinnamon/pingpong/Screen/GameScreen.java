@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.cinnamon.pingpong.Main;
@@ -47,7 +48,7 @@ public class GameScreen implements Screen {
     private Json json;
     private Data data;
     private OrthographicCamera camera;
-    private MainTable mainTable;
+    private Table mainTable;
 
     public GameScreen(final Main game) {
         this.game = game;
@@ -79,7 +80,9 @@ public class GameScreen implements Screen {
         this.background = new Image(backgroundSprite);
         this.background.setFillParent(true);
         this.background.setScaling(com.badlogic.gdx.utils.Scaling.stretch);
-        this.mainTable = new MainTable(game);
+        this.mainTable = new Table();
+        this.mainTable.setFillParent(true);
+        this.mainTable.center();
         this.mainTable.add(score).expandY().center().pad(10);
         this.mainTable.row();
         this.stage.addActor(background);
