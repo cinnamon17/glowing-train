@@ -23,6 +23,11 @@ public class Ball extends Image {
     public void act(float delta) {
         super.act(delta);
 
+        if (getStage() != null) {
+            this.WORLD_WIDTH = getStage().getViewport().getWorldWidth();
+            this.WORLD_HEIGHT = getStage().getViewport().getWorldHeight();
+        }
+
         this.moveBy(speedX * delta, speedY * delta);
 
         if (isAxisYTouched()) {
@@ -33,10 +38,6 @@ public class Ball extends Image {
         }
 
         this.resetPosIfTopOrBottomTouched();
-        if (getStage() != null) {
-            this.WORLD_WIDTH = getStage().getViewport().getWorldWidth();
-            this.WORLD_HEIGHT = getStage().getViewport().getWorldHeight();
-        }
     }
 
     public boolean isAxisYTouched() {

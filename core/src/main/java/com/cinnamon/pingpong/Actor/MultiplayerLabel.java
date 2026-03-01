@@ -14,13 +14,12 @@ public class MultiplayerLabel extends Table {
 
         super();
         this.setFillParent(true);
-        this.setVisible(false);
         Skin skin = new Skin(Gdx.files.internal("skin/glassy-ui.json"));
-        Label label = new Label("Waiting for connection", skin, "big");
+        Label label = new Label("Waiting for connection in LAN", skin, "big");
         label.setColor(skin.getColor("white"));
         this.add(label);
         this.row();
-        label = new Label("IP: 127.0.0.1", skin, "big");
+        label = new Label("PORT: 5630", skin, "big");
         label.setColor(skin.getColor("white"));
         this.add(label);
     }

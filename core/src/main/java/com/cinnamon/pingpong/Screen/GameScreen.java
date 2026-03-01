@@ -1,9 +1,5 @@
 package com.cinnamon.pingpong.Screen;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.net.InetAddress;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -15,15 +11,17 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.cinnamon.pingpong.Main;
 import com.cinnamon.pingpong.Actor.Ball;
-import com.cinnamon.pingpong.Actor.MainTable;
 import com.cinnamon.pingpong.Actor.Paddle;
 import com.cinnamon.pingpong.Actor.Score;
 import com.cinnamon.pingpong.Dto.Data;
 import com.cinnamon.pingpong.Input.PaddleInputProcessor;
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
+import com.esotericsoftware.kryonet.Server;
 
 public class GameScreen implements Screen {
     private final Main game;
@@ -42,16 +40,19 @@ public class GameScreen implements Screen {
     private PaddleInputProcessor paddleInputProcessor;
     private Stage stage;
     private Score score;
-    private boolean isServer;
-    private DataOutputStream serverDataOutputStream, clientDataOutputStream;
-    private DataInputStream serverDataInputStream, clientDataInputStream;
-    private Json json;
+    private boolean conected;
     private Data data;
     private OrthographicCamera camera;
     private Table mainTable;
+    private Server server;
+    private Boolean isHost;
+    private Client client;
+    private InetAddress address;
 
-    public GameScreen(final Main game) {
+    public GameScreen(final Main game, Server server ) {
         this.game = game;
+        this.server = server;
+        this.isHost =  (server!= null);
     }
 
     @Override
@@ -91,8 +92,40 @@ public class GameScreen implements Screen {
         this.stage.addActor(paddleEnemy);
         this.stage.addActor(mainTable);
         Gdx.input.setInputProcessor(inputMultiplexer);
-        this.json = new Json();
         this.data = new Data();
+
+        this.client = new Client();
+        this.client.start();
+        this.client.getKryo().register(Data.class);
+        this.address = client.discoverHost(54777, 5000);
+
+        client.addListener(new Listener() {
+            public void received (Connection connection, Object object) {
+                if (object instanceof Data) {
+                    Data response = (Data)object;
+                    data.setClientPaddleX(response.getClientPaddleX());
+                    data.setHostPaddleX(response.getHostPaddleX());
+
+                    if (!isHost) {
+                        data.setBallX(response.getBallX());
+                        data.setBallY(response.getBallY());
+                        data.setScoreEnemy(response.getScoreEnemy());
+                        data.setScorePlayer(response.getScorePlayer());
+                    }
+                }
+            }
+        });
+
+        if (this.address != null) {
+            try {
+                client.connect(5000, this.address.getHostAddress(), 54555, 54777);
+                this.conected = true;
+                Gdx.app.log("GameScreen.java", "connected to server");
+            } catch (Exception e) {
+                Gdx.app.log("GameScreen.java", "could not stablish a connection: " + e.toString());
+            }
+        }
+
     }
 
     @Override
@@ -135,10 +168,54 @@ public class GameScreen implements Screen {
     public void render(float delta) {
 
         this.clearScreen();
-        this.scoreUpdate();
+        if (conected) {
+
+            float anchoActual = stage.getViewport().getWorldWidth();
+            float altoActual = stage.getViewport().getWorldHeight();
+
+            if (isHost) {
+
+                float targetX = this.data.getClientPaddleX() * anchoActual;
+                float currentX = paddleEnemy.getX();
+                paddleEnemy.setX(com.badlogic.gdx.math.MathUtils.lerp(currentX, targetX, 10f * delta));
+                this.ball.act(delta);
+                this.ballCheckCollision();
+                this.scoreUpdate();
+
+                Data packet = new Data();
+                packet.setBallX(this.ball.getX() / anchoActual);
+                packet.setBallY(this.ball.getY() / altoActual);
+                packet.setScorePlayer(this.score.getScorePlayer());
+                packet.setScoreEnemy(this.score.getScoreEnemy());
+                packet.setHostPaddleX(this.paddle.getX() / anchoActual);
+                this.client.sendUDP(packet);
+
+            } else {
+
+                float targetX = this.data.getHostPaddleX() * anchoActual;
+                float currentX = paddleEnemy.getX();
+                paddleEnemy.setX(com.badlogic.gdx.math.MathUtils.lerp(currentX, targetX, 10f * delta));
+                float ballTargetX = data.getBallX() * anchoActual;
+                float ballTargetY = data.getBallY() * altoActual;
+
+                float bX = com.badlogic.gdx.math.MathUtils.lerp(ball.getX(), ballTargetX, 15f * delta);
+                float bY = com.badlogic.gdx.math.MathUtils.lerp(ball.getY(), ballTargetY, 15f * delta);
+                ball.setPosition(bX, bY);
+
+                this.score.setScorePlayer(data.getScorePlayer());
+                this.score.setScoreEnemy(data.getScoreEnemy());
+                this.score.update();
+
+                Data packetClient = new Data();
+                packetClient.setClientPaddleX(this.paddle.getX() / anchoActual);
+                this.client.sendUDP(packetClient);
+            }
+
+            Gdx.app.log("DEBUG", "Bola recibida: " + data.getBallX());
+        }
+
         this.stage.act(delta);
         this.stage.draw();
-        this.ballCheckCollision();
 
     }
 
@@ -170,18 +247,6 @@ public class GameScreen implements Screen {
         this.clearScreen();
         this.cameraUpdate();
         this.setProjectionMatrixCombined();
-    }
-
-    public void updateMultiplayerCommunication() {
-        try {
-            if (this.isServer()) {
-                this.handleServerSideCommunication();
-            } else {
-                this.handleClientSideCommunication();
-            }
-        } catch (IOException e) {
-            this.logError(e);
-        }
     }
 
     public void ballCheckCollision() {
@@ -219,7 +284,6 @@ public class GameScreen implements Screen {
         return this.camera;
     }
 
-
     public void cameraUpdate() {
         this.camera.update();
     }
@@ -242,134 +306,4 @@ public class GameScreen implements Screen {
         this.score.update();
     }
 
-    public void setServerDataOutputStream(OutputStream outputStream) {
-        this.serverDataOutputStream = new DataOutputStream(outputStream);
-    }
-
-    public void setServerDataInputStream(InputStream inputStream) {
-        this.serverDataInputStream = new DataInputStream(inputStream);
-    }
-
-    public void setClientDataOutputStream(OutputStream outputStream) {
-        this.clientDataOutputStream = new DataOutputStream(outputStream);
-    }
-
-    public void setClientDataInputStream(InputStream inputStream) {
-        this.clientDataInputStream = new DataInputStream(inputStream);
-    }
-
-    public DataInputStream getServerDataInputStream() {
-        return serverDataInputStream;
-    }
-
-    public DataOutputStream getServerDataOutputStream() {
-        return serverDataOutputStream;
-    }
-
-    public DataInputStream getClientDataInputStream() {
-        return clientDataInputStream;
-    }
-
-    public DataOutputStream getClientDataOutputStream() {
-        return clientDataOutputStream;
-    }
-
-    public boolean isServer() {
-        return this.isServer;
-    }
-
-    public void setIsServer(boolean b) {
-        this.isServer = b;
-    }
-
-
-    public void closeDataStreams() {
-
-        if (this.isServer()) {
-            this.closeServerDataStream();
-        } else {
-            this.closeClientDataStream();
-        }
-    }
-
-    public void closeServerDataStream() {
-        try {
-            if (this.serverDataInputStream != null) {
-                this.serverDataInputStream.close();
-                this.serverDataOutputStream.close();
-            }
-        } catch (IOException e) {
-            Gdx.app.log("GameHandler.java", "Error closing DataStreams", e);
-        }
-    }
-
-    public void closeClientDataStream() {
-
-        try {
-            if (this.clientDataInputStream != null) {
-                this.clientDataInputStream.close();
-                this.clientDataOutputStream.close();
-            }
-        } catch (IOException e) {
-            Gdx.app.log("GameHandler.java", "Error closing client DataStreams", e);
-        }
-
-    }
-
-    private void handleServerSideCommunication() throws IOException {
-        updateServerData();
-        sendServerDataToClient();
-        receiveClientDataAndUpdatePaddle();
-    }
-
-    private void handleClientSideCommunication() throws IOException {
-        receiveServerDataAndUpdateClient();
-        updateClientData();
-        sendClientDataToServer();
-    }
-
-    private void updateServerData() {
-        data.setServerPaddleX(this.paddle.getX());
-        data.setServerBallX(this.ball.getX());
-        data.setServerBallY(calculateServerBallY());
-        data.setScorePlayer(this.score.getScorePlayer());
-        data.setScoreEnemy(this.score.getScoreEnemy());
-    }
-
-    private float calculateServerBallY() {
-        return Gdx.graphics.getHeight() - this.getBallActor().getY() - this.getBallActor().getHeight();
-    }
-
-    private void sendServerDataToClient() throws IOException {
-        this.getServerDataOutputStream().writeUTF(json.toJson(data));
-    }
-
-    private void receiveClientDataAndUpdatePaddle() throws IOException {
-        Data clientData = json.fromJson(Data.class, this.getServerDataInputStream().readUTF());
-        this.getPaddleActorEnemy().setX(clientData.getClientPaddleX());
-        this.paddleEnemy.setIsLeftMoved(clientData.getClientPaddleIsLeftMoved());
-        this.paddleEnemy.setIsRightMoved(clientData.getClientPaddleIsRightMoved());
-    }
-
-    private void receiveServerDataAndUpdateClient() throws IOException {
-        Data serverData = json.fromJson(Data.class, this.getClientDataInputStream().readUTF());
-        this.getPaddleActorEnemy().setX(serverData.getServerPaddleX());
-        this.getBallActor().setPosition(serverData.getServerBallX(), serverData.getServerBallY());
-        this.score.setScoreEnemy(serverData.getScoreEnemy());
-        this.score.setScorePlayer(serverData.getScorePlayer());
-    }
-
-    private void updateClientData() {
-        data.setClientPaddleX(this.getPaddleActor().getX());
-        data.setClientPaddleIsRightMoved(this.getPaddleActor().isRightMoved());
-        data.setClientPaddleIsLeftMoved(this.getPaddleActor().isLeftMoved());
-    }
-
-    private void sendClientDataToServer() throws IOException {
-        this.getClientDataOutputStream().writeUTF(json.toJson(data));
-    }
-
-    private void logError(IOException e) {
-        Gdx.app.log("GameScreen.java", "Error sending Data", e);
-    }
 }

@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.cinnamon.pingpong.Main;
 import com.cinnamon.pingpong.Screen.GameScreen;
+import com.cinnamon.pingpong.Screen.ServerScreen;
 
 /**
  * Menu buttons items
@@ -57,7 +58,7 @@ public class MainTitleMenu extends Table {
 			public void changed(ChangeEvent event, Actor actor) {
 				Gdx.app.log("MainTitleScreen.java", "new game button pressed");
                 if (gameScreen == null) {
-                    gameScreen = new GameScreen(game);
+                    gameScreen = new GameScreen(game, null);
 				    game.setScreen(gameScreen);
                 }
 			}
@@ -67,31 +68,7 @@ public class MainTitleMenu extends Table {
 		this.multiplayer.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				Gdx.app.log("MainTitleScreen.java", "Starting Server Socket");
-
-				ServerSocketHints serverSocketHints = new ServerSocketHints();
-				serverSocketHints.acceptTimeout = 0;
-				ServerSocket server = Gdx.net.newServerSocket(Net.Protocol.TCP, "localhost",
-						8080,
-						serverSocketHints);
-
-				// Thread serverListener = new Thread() {
-				// 	@Override
-				// 	public void run() {
-				// 		Gdx.app.log("MainTitleScreen.java", "Waiting for connection");
-				// 		Socket socket = server.accept(new SocketHints());
-				// 		Gdx.app.log("MainTitleScreen.java", "client connected");
-				// 		game.setServerDataInputStream(socket.getInputStream());
-				// 		game.setServerDataOutputStream(socket.getOutputStream());
-				// 		game.setIsServer(true);
-				// 		game.setScreen(game.getGameScreen());
-				// 		newGame.setDisabled(false);
-				// 		connect.setDisabled(true);
-				// 		multiplayer.setDisabled(true);
-				// 	}
-				// };
-				//serverListener.start();
-				//game.setScreen(game.getServerScreen());
+				game.setScreen(new ServerScreen(game));
 			}
 
 		});
@@ -102,7 +79,7 @@ public class MainTitleMenu extends Table {
 				newGame.setDisabled(false);
 				connect.setDisabled(true);
 				multiplayer.setDisabled(true);
-				//game.setScreen(game.getClientScreen());
+				//game.setScreen();
 			}
 
 		});

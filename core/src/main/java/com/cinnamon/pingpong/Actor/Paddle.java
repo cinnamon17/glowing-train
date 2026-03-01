@@ -1,7 +1,6 @@
 
 package com.cinnamon.pingpong.Actor;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
@@ -26,26 +25,26 @@ public class Paddle extends Image {
         }
 
         if (this.isLeftMoved()) {
-            handleLeftMove();
+            handleLeftMove(delta);
         }
 
         if (this.isRightMoved()) {
-            handleRightMove();
+            handleRightMove(delta);
         }
 
     }
 
-    public void handleLeftMove() {
+    public void handleLeftMove(float delta) {
 
-        this.setX(this.getX() - 200 * Gdx.graphics.getDeltaTime());
+        this.setX(this.getX() - 200 * delta);
         if (isAxisYTouched()) {
             this.setPosition(0, 0);
         }
     }
 
-    public void handleRightMove() {
+    public void handleRightMove(float delta) {
 
-        this.setX(this.getX() + 200 * Gdx.graphics.getDeltaTime());
+        this.setX(this.getX() + 200 * delta);
         if (isAxisYTouched()) {
             this.setPosition(this.WORLD_WIDTH - this.getWidth(), 0);
         }
