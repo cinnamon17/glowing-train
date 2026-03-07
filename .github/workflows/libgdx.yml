@@ -1,0 +1,55 @@
+name: Gradle Build
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags like v1.0.0, v2.0.0, etc.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant gradlew execute permissions
+        run: chmod +x gradlew
+
+      - name: Build Linux Version
+        run: ./gradlew lwjgl3:packageLinuxX64
+
+      - name: Build Windows Version
+        run: ./gradlew lwjgl3:packageWinX64
+
+      - name: Build Android Debug app
+        run: ./gradlew android:assembleDebug
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            lwjgl3/build/construo/dist/pingpong-linuxX64.zip
+            lwjgl3/build/construo/dist/pingpong-winX64.zip
+            android/build/outputs/apk/debug/android-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
