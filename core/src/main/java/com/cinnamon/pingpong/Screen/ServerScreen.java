@@ -50,6 +50,7 @@ public class ServerScreen implements Screen {
         this.stage.addActor(label);
         this.server = new Server();
         this.server.start();
+        this.server.getKryo().register(Data.class);
         this.conected = false;
         this.data = new Data();
 
@@ -60,7 +61,6 @@ public class ServerScreen implements Screen {
             Gdx.app.log("ServerScreen.java", "Error conecting: " + e.toString());
         }
 
-        this.server.getKryo().register(Data.class);
 
         server.addListener(new Listener() {
             public void received (Connection connection, Object object) {

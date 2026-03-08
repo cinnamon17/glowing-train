@@ -97,8 +97,18 @@ public class GameScreen implements Screen {
         this.client = new Client();
         this.client.start();
         this.client.getKryo().register(Data.class);
-        this.address = client.discoverHost(54777, 5000);
+        this.address = client.discoverHost(54777, 35000);
+        Gdx.app.log("GameScreen.java", "server discovered: " + this.address);
 
+        if (this.address != null) {
+            try {
+                client.connect(5000, this.address, 54555, 54777);
+                this.conected = true;
+                Gdx.app.log("GameScreen.java", "connected to server");
+            } catch (Exception e) {
+                Gdx.app.log("GameScreen.java", "could not stablish a connection: " + e.toString());
+            }
+        }
         client.addListener(new Listener() {
             public void received (Connection connection, Object object) {
                 if (object instanceof Data) {
@@ -115,16 +125,6 @@ public class GameScreen implements Screen {
                 }
             }
         });
-
-        if (this.address != null) {
-            try {
-                client.connect(5000, this.address.getHostAddress(), 54555, 54777);
-                this.conected = true;
-                Gdx.app.log("GameScreen.java", "connected to server");
-            } catch (Exception e) {
-                Gdx.app.log("GameScreen.java", "could not stablish a connection: " + e.toString());
-            }
-        }
 
     }
 
@@ -168,6 +168,7 @@ public class GameScreen implements Screen {
     public void render(float delta) {
 
         this.clearScreen();
+
         if (conected) {
 
             float anchoActual = stage.getViewport().getWorldWidth();
