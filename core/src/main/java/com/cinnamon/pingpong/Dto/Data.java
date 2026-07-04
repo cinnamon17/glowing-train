@@ -7,6 +7,7 @@ public class Data {
 
     private float clientPaddleX;
     private float hostPaddleX;
+    private float hostPaddleHeight;
     public float ballX;
     public float ballY;
     public int scorePlayer;
@@ -29,6 +30,14 @@ public class Data {
 
     public void setHostPaddleX(float hostPaddleX) {
         this.hostPaddleX = hostPaddleX;
+    }
+
+    public float getPaddleHeight() {
+        return hostPaddleHeight;
+    }
+
+    public void setPaddleHeight(float hostPaddleHeight) {
+        this.hostPaddleHeight = hostPaddleHeight;
     }
 
     public float getBallX() {
